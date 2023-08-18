@@ -123,7 +123,14 @@ class MaskDecoder(nn.Module):
         tokens = torch.cat((output_tokens, sparse_prompt_embeddings), dim=1)
 
         # Expand per-image data in batch direction to be per-mask
-        src = torch.repeat_interleave(image_embeddings, tokens.shape[0], dim=0)
+        # Version 1: Additional Edits to make image have Uniform Size
+        src = torch.repeat_interleave(image_embeddings, tokens.shape[0]//image_embeddings.shape[0], dim=0)
+        dense_prompt_embeddings = torch.repeat_interleave(dense_prompt_embeddings, tokens.shape[0]//dense_prompt_embeddings.shape[0], dim=0)
+
+        # Version 2: Simply remove any duplicates and use image_embeddings as source
+        # src = torch.repeat_interleave(image_embeddings, tokens.shape[0], dim=0) TODO: EDIT MADE to correct dup error
+        # src = image_embeddings
+
         src = src + dense_prompt_embeddings
         pos_src = torch.repeat_interleave(image_pe, tokens.shape[0], dim=0)
         b, c, h, w = src.shape
